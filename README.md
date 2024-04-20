@@ -1,6 +1,6 @@
 README: YARA Docker Image Creation and Analysis Tool
 
-This Bash script is designed to streamline the creation of Docker containers for YARA rule analysis, manage dependencies, and execute Python scripts within the Docker environment. It provides a comprehensive solution for users looking to validate and analyze YARA rules efficiently.
+This Bash script is designed to streamline the creation of Docker containers for YARA rule analysis, manage dependencies, and execute Python scripts within the Docker environment. It provides a comprehensive solution for users looking to validate, repair, and analyze YARA rules efficiently.
 Features:
 
     Automated Docker container setup for YARA rule analysis.
