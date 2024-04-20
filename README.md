@@ -14,7 +14,7 @@ Prerequisites:
     Docker is installed on the host machine.
     Bash shell environment.
     Internet connection for downloading dependencies and Docker images.
-    Python script named script.py in the working directory for analysis.
+    Place the YARA rules in the same directory as the three scripts. 
 
 Usage Instructions:
 
