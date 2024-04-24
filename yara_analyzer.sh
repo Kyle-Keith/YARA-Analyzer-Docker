@@ -39,6 +39,67 @@ function show_progress {
     fi
 }
 
+#!/bin/bash
+
+# Load system identification information
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+else
+    echo "The os-release file is missing!"
+    exit 1
+fi
+
+# Function to check if Docker is running
+check_docker() {
+    if docker info >/dev/null 2>&1; then
+        echo "Docker is running."
+        return 0  # Success
+    else
+        echo "Docker is not running. Attempting to start Docker..."
+        start_docker
+    fi
+}
+
+# Function to start Docker based on the OS type
+start_docker() {
+    case $ID in
+        ubuntu|debian)
+            # Using service command for Ubuntu and Debian
+            if sudo service docker start; then
+                echo "Docker started successfully using service on Ubuntu/Debian."
+                return 0
+            else
+                echo "Failed to start Docker using service on Ubuntu/Debian."
+                return 1
+            fi
+            ;;
+        rhel|fedora|centos)
+            # systemd systems for Red Hat based distributions
+            if sudo systemctl start docker; then
+                echo "Docker started successfully using systemctl."
+                return 0
+            else
+                echo "Failed to start Docker using systemctl."
+                return 1
+            fi
+            ;;
+        oracle)
+            # Oracle might use init.d/systemctl; assuming systemctl here
+            if sudo systemctl start docker; then
+                echo "Docker started successfully using systemctl on Oracle Linux."
+                return 0
+            else
+                echo "Failed to start Docker using systemctl on Oracle Linux."
+                return 1
+            fi
+            ;;
+        *)
+            echo "Your OS $NAME is not supported by this script."
+            return 1
+            ;;
+    esac
+}
+
 function creating_docker_container() {
     local max_attempts=2
     local attempt=1
@@ -669,7 +730,18 @@ function main() {
         echo "Docker is not installed. Please install Docker first."
         exit 1
     fi
-    export DOCKER_HOST=unix:///var/run/docker.sock
+
+    # Execute check
+    check_docker
+
+    # Check the status again after trying to start Docker
+    if ! check_docker; then
+        echo "There was an issue starting Docker."
+        exit 1
+    else
+        export DOCKER_HOST=unix:///var/run/docker.sock
+    fi
+
 
     while true; do
         echo "Please ensure that the files that you want to analyze are in a folder inside the SAME directory of this script"
