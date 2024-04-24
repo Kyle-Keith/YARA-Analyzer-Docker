@@ -90,10 +90,12 @@ def clean_yara_file_v2(yara_file_content):
     return cleaned_content
 
 
-def count_yara_rules_in_directory(directory):
-    """Counts YARA rules based on lines strictly starting with 'rule' declarations in all YARA files in a directory."""
+def count_yara_rules_and_find_imports(directory):
+    """Counts YARA rules and finds unique imports from all YARA files in a directory, returning results as a dictionary."""
     rule_count = 0
-    rule_pattern = re.compile(r'^\s*rule\s+\w+')  # Pattern to find lines that start with 'rule' followed by whitespace and an identifier
+    unique_imports = set()
+    rule_pattern = re.compile(r'^\s*rule\s+\w+')  # Pattern to find lines starting with 'rule'
+    import_pattern = re.compile(r'^\s*import\s+(\S+)')  # Pattern to find lines starting with 'import'
     valid_extensions = ('.yara', '.yar')
     
     for root, dirs, files in os.walk(directory):
@@ -104,7 +106,13 @@ def count_yara_rules_in_directory(directory):
                     for line in f:
                         if rule_pattern.match(line):
                             rule_count += 1
-    return rule_count
+                        match = import_pattern.match(line)
+                        if match:
+                            unique_imports.add(match.group(1))
+    
+    # Return results as a dictionary
+    return {'item1': rule_count, 'item2': list(unique_imports)}
+
 
 #################################### MAIN ##############################################
 
@@ -113,12 +121,13 @@ def process_yara_files(root_dir):
     dirs = {'valid': 'valid', 'broken': 'broken', 'repaired': 'repaired'}
 
     # Initial count of total rules before processing
-    total_initial_rules = count_yara_rules_in_directory(root_dir + "/rules/")
-    
+    results = count_yara_rules_and_find_imports(root_dir + "/rules/")
+
     for key in dirs:
-        os.makedirs(os.path.join(root_dir, dirs[key] ), exist_ok=True)
+        os.makedirs(os.path.join(root_dir, dirs[key]), exist_ok=True)
         with open(os.path.join(root_dir, dirs[key] + '/' + dirs[key] + '.yara'), 'w', encoding='utf-8') as file:
-            file.write(f"\n")
+            file.write("")
+
 
     unique_rules = set()
     temp_file_path = os.path.abspath("temp_batch_yara.yara")
@@ -178,14 +187,40 @@ def process_yara_files(root_dir):
             with open(yara_file_path, 'w', encoding='utf-8') as file:
                 file.write("")
 
+    # Assuming 'dirs' is a dictionary mapping keys to subdirectory names
     with open(os.path.join(root_dir, "report.log"), 'w', encoding='utf-8') as report_file:
-        report_file.write(f"Total Initial Rule count: {total_initial_rules}\n")
+        # Assuming 'results' has been previously defined with the output of count_yara_rules_and_find_imports
+        report_file.write(f"Total Initial Rule count: {results['item1']}\n")
         report_file.write(f"Total Duplicate Rule count: {duplicate_rules}\n")
+
+        # Iterate through each key and corresponding subdirectory
         for key, subdir in dirs.items():
             dir_path = os.path.join(root_dir, subdir)
-            rule_count = count_yara_rules_in_directory(dir_path)  # Count rules in each specific subdirectory
-            report_file.write(f"{key.capitalize()} rules count: {rule_count}\n")
+            # Obtain rule count from each specific subdirectory
+            results = count_yara_rules_and_find_imports(dir_path)
+            # Write only the numeric rule count ('item1') to the report file
+            report_file.write(f"{key.capitalize()} rules count: {results['item1']}\n")
 
+    for key in dirs:
+        file_path = os.path.join(root_dir, dirs[key] + '/' + dirs[key] + '.yara')
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)  # Ensure the directory exists
+        
+        # Prepare the import statements as a single string
+        #import_statements = ''.join(f"import {import_item}\n" for import_item in results['item2'])
+        
+        # Read existing content if the file already exists
+        if os.path.exists(file_path):
+            with open(file_path, 'r', encoding='utf-8') as file:
+                existing_content = file.read()
+        else:
+            existing_content = 'Nothing'
+
+        # Write the import statements followed by the existing content
+        with open(file_path, 'w', encoding='utf-8') as file:
+            for i in results['item2']:
+                file.write(f"import {i}\n")
+            file.write(existing_content)
+    print(results['item2'])
 
 if __name__ == "__main__":
     root_dir = "/files" if len(sys.argv) <= 1 else sys.argv[1]
