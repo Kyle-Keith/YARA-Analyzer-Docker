@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Check if the script is being run as root (or with sudo)
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root. Please rerun with sudo." 
+   exit 1
+fi
+
 bar_size=40
 bar_char_done="#"
 bar_char_todo="-"
@@ -335,7 +341,7 @@ function running_analysis() {
         echo "Found host directory for /files: $host_dir"
         if [ "$host_dir" != "$PWD/$yara_dir" ]; then
             echo "Clearing any previous YARA rules"
-            rm -rf $host_dir/*  # Correct the path and remove the quotes around the glob
+            sudo rm -rf $host_dir/*  # Correct the path and remove the quotes around the glob
             mkdir -p "$host_dir/rules/"
             echo "Moving YARA rules from $PWD/$yara_dir to $host_dir"
             cp -rf "$PWD/$yara_dir/"* "$host_dir/rules/"  # Ensure copying directly to $host_dir
@@ -531,6 +537,7 @@ function create_yara_docker_image() {
     echo "Creating a new YARA Docker image..."
     local function_list=( Installing_dependencies Installing_OpenSSL Installing_yara  Installing_yara_python Installing_yara_validator Injecting_python_script )
     local total_steps=${#function_list[@]}
+
     yara_dir="files"
     touch "${error_log}"
 
@@ -546,6 +553,7 @@ function create_yara_docker_image() {
 
     sleep 10
     show_progress $counter $total_steps
+    
     # Iterate through the function list
     for func in "${function_list[@]}"; do
 
@@ -609,6 +617,7 @@ function yara_analysis() {
             exit 1
         fi
     done
+    
 
     display_report
 }
