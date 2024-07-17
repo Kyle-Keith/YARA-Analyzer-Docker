@@ -1,6 +1,6 @@
 README: YARA Docker Image Creation and Analysis Tool
 
-This Bash script is designed to streamline the creation of Docker containers for YARA rule analysis, manage dependencies, and execute Python scripts within the Docker environment. It provides a comprehensive solution for users looking to validate, repair, and analyze YARA rules efficiently.
+This Bash script is designed to streamline the creation of Docker containers for YARA rule analysis, manage dependencies, and execute Python scripts within the Docker environment. It provides a comprehensive solution for users looking to validate and analyze YARA rules efficiently.
 Features:
 
     Automated Docker container setup for YARA rule analysis.
@@ -11,19 +11,19 @@ Features:
 
 Prerequisites:
 
-    Docker is installed on the host machine.
+    Docker installed on the host machine.
     Bash shell environment.
     Internet connection for downloading dependencies and Docker images.
-    Place the YARA rules in the same directory as the three scripts. 
+    Python script named script.py in the working directory for analysis.
 
 Usage Instructions:
 
     Starting the Script: Run the script in your terminal with bash script_name.sh.
 
     Select an Option: The script prompts you with multiple options:
-        1) Create a new YARA Docker image: Set up a new Docker container specifically for YARA rule analysis, installing all necessary dependencies.
-        2) Run the YARA checker using an existing image: Use an already created Docker container to analyze YARA rules.
-        3) Export the Docker image 
+        1) Create a new YARA Docker image: Setup a new Docker container specifically for YARA rule analysis, installing all necessary dependencies.
+        2) Run YARA checker using existing image: Use an already created Docker container to analyze YARA rules.
+        3) Full service (create image and check YARA rules): A comprehensive option that creates a new Docker container, installs dependencies, and runs YARA rule analysis.
         4) Delete Docker image: Remove an existing Docker container used for YARA analysis.
         5) Import Docker Image: Import a Docker image from a .tar file and run YARA rule checks using this image.
         6) Exit: Terminate the script execution.
